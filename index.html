@@ -16,45 +16,44 @@
         #canvas-container {
             width: 100vw;
             height: 100vh;
-            position: fixed; /* Fixed previene problemas de scroll en iframes */
+            position: fixed; 
             top: 0;
             left: 0;
             z-index: 1;
-            pointer-events: none; /* Que el canvas no robe clicks de los overlays externos */
+            pointer-events: none; 
         }
 
         /* ========================================================
-           SISTEMA DE CONTROLES HORIZONTALES (IZQUIERDA A DERECHA)
-           BLINDADO PARA ENTORNOS RESTRINGIDOS COMO XAT
+           SISTEMA DE CONTROLES HORIZONTALES (DIMENSIONES FIJAS)
            ======================================================== */
         #ui-wrapper {
-            position: fixed; /* Fijo a la ventana del iframe/navegador */
+            position: fixed; 
             top: 65px; 
-            left: 20px; /* Movido a la IZQUIERDA */
+            left: 0; 
             display: flex;
             align-items: center;
-            justify-content: flex-start; /* Expansión hacia la DERECHA */
-            gap: 10px;
-            z-index: 2147483647; /* Z-Index máximo absoluto (32-bit) */
+            justify-content: flex-start; 
+            gap: 5px; 
+            z-index: 2147483647; 
             pointer-events: none; 
-            isolation: isolate; /* Crea un nuevo contexto de apilamiento */
+            isolation: isolate; 
         }
 
         #panel-toggle {
             pointer-events: auto;
-            background: rgba(15, 15, 15, 0.95); /* Un poco más opaco para destacar */
+            background: rgba(15, 15, 15, 0.95);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: #fff;
-            width: 44px;
-            height: 44px;
-            border-radius: 8px;
+            width: 34px; 
+            height: 34px; 
+            border-radius: 6px;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
             transition: background 0.2s, transform 0.2s;
             user-select: none;
             flex-shrink: 0;
@@ -66,30 +65,36 @@
 
         #horizontal-toolbar {
             pointer-events: auto;
-            max-width: calc(100vw - 90px); 
+            width: 1342px; 
+            height: 34px; 
+            box-sizing: border-box; 
+            
             display: flex;
             align-items: center;
             gap: 15px;
-            padding: 10px 15px;
+            padding: 0 15px; 
+            
             background: rgba(15, 15, 15, 0.95);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
+            border-radius: 6px;
             
-            transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, padding 0.4s ease;
+            transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, padding 0.4s ease;
             opacity: 1;
             
             overflow-x: auto;
-            overflow-y: hidden;
+            overflow-y: hidden; 
             white-space: nowrap;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-            
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.4) transparent;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            scrollbar-width: none; 
+        }
+
+        #horizontal-toolbar::-webkit-scrollbar {
+            display: none; 
         }
 
         #horizontal-toolbar.collapsed {
-            max-width: 0;
+            width: 0;
             padding-left: 0;
             padding-right: 0;
             opacity: 0;
@@ -99,37 +104,33 @@
             gap: 0;
         }
 
-        #horizontal-toolbar::-webkit-scrollbar {
-            height: 6px;
-        }
-        #horizontal-toolbar::-webkit-scrollbar-thumb {
-            background-color: rgba(255,255,255,0.4);
-            border-radius: 4px;
-        }
-
         .control-group {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 12px;
+            gap: 6px;
+            font-size: 11px; 
             color: #ddd;
             user-select: none;
+            height: 100%; 
         }
 
         input[type="range"] {
-            width: 80px;
+            width: 70px;
+            height: 10px; 
             accent-color: #fff;
             cursor: pointer;
         }
 
         input[type="text"].hex-input {
-            width: 60px;
+            width: 58px;
+            height: 22px; 
+            box-sizing: border-box;
             background: rgba(0, 0, 0, 0.8);
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: #fff;
             font-family: 'Courier New', Courier, monospace;
             font-size: 11px;
-            padding: 4px 6px;
+            padding: 0 4px; 
             border-radius: 4px;
             text-align: center;
             outline: none;
@@ -148,25 +149,22 @@
         input[type="checkbox"] {
             cursor: pointer;
             accent-color: #fff;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
         }
         
         .separator {
             width: 1px;
-            height: 20px;
+            height: 18px; 
             background: rgba(255,255,255,0.25);
-            margin: 0 5px;
+            margin: 0 2px;
         }
     </style>
 </head>
 <body>
-    <!-- Contenedor general: Ahora el botón va primero para expandir a la derecha -->
     <div id="ui-wrapper">
-        <!-- Botón Toggle siempre visible (Lado Izquierdo) -->
         <div id="panel-toggle" title="Ocultar/Mostrar Controles">×</div>
 
-        <!-- Barra Horizontal de Controles (Se expande hacia la Derecha) -->
         <div id="horizontal-toolbar">
             <div class="control-group">
                 <label for="ctrl-color1">Base</label>
@@ -347,7 +345,7 @@
     </script>
 
     <!-- ============================================== -->
-    <!-- MAIN JAVASCRIPT -->
+    <!-- MAIN JAVASCRIPT: POLLING ACTIVO SIN EVENTOS    -->
     <!-- ============================================== -->
     <script>
         let scene, camera, renderer, material, mesh;
@@ -358,7 +356,7 @@
         let targetX = 0;
         let targetY = 0;
 
-        const STORAGE_KEY = 'organic_bg_config_v2_xat';
+        const STORAGE_KEY = 'organic_bg_config_v3_polling';
 
         const defaultConfig = {
             color1: '#15062a',
@@ -374,6 +372,20 @@
         };
 
         let config = { ...defaultConfig };
+        let saveTimeout = null;
+
+        // Lista de controles a escanear en cada frame
+        const controlsList = [
+            { id: 'ctrl-color1', key: 'color1', type: 'color', uniform: 'uColor1' },
+            { id: 'ctrl-color2', key: 'color2', type: 'color', uniform: 'uColor2' },
+            { id: 'ctrl-color3', key: 'color3', type: 'color', uniform: 'uColor3' },
+            { id: 'ctrl-offset', key: 'colorOffset', type: 'float', uniform: 'uColorOffset' },
+            { id: 'ctrl-contrast', key: 'colorMultiplier', type: 'float', uniform: 'uColorMultiplier' },
+            { id: 'ctrl-speed', key: 'speed', type: 'float', uniform: 'uSpeed' },
+            { id: 'ctrl-elevation', key: 'elevation', type: 'float', uniform: 'uElevation' },
+            { id: 'ctrl-frequency', key: 'frequency', type: 'float', uniform: 'uFrequency' },
+            { id: 'ctrl-wireframe', key: 'wireframe', type: 'bool' }
+        ];
 
         function loadConfig() {
             try {
@@ -386,34 +398,12 @@
             }
         }
 
-        function saveConfig() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
-        }
-
-        // ==========================================
-        // RENDERIZADO FORZADO PARA IFRAMES/XAT
-        // ==========================================
-        function updateSceneRender() {
-            if (!material || !renderer || !scene || !camera) return;
-
-            material.uniforms.uColor1.value.set(config.color1);
-            material.uniforms.uColor2.value.set(config.color2);
-            material.uniforms.uColor3.value.set(config.color3);
-
-            material.uniforms.uColorOffset.value = parseFloat(config.colorOffset);
-            material.uniforms.uColorMultiplier.value = parseFloat(config.colorMultiplier);
-            material.uniforms.uSpeed.value = parseFloat(config.speed);
-            material.uniforms.uElevation.value = parseFloat(config.elevation);
-            material.uniforms.uFrequency.value = parseFloat(config.frequency);
-
-            if (material.wireframe !== config.wireframe) {
-                material.wireframe = config.wireframe;
-                material.needsUpdate = true;
-            }
-
-            // BLINDAJE: Forzar un render inmediato. Si el entorno xat bloquea
-            // el requestAnimationFrame, esta línea garantiza visualización inmediata.
-            renderer.render(scene, camera);
+        // Guardado con debounce para no sobrecargar el disco en el loop de 60fps
+        function requestSave() {
+            if (saveTimeout) clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+            }, 500);
         }
 
         function init() {
@@ -437,16 +427,16 @@
                 fragmentShader: document.getElementById('fragmentShader').textContent,
                 uniforms: {
                     uTime: { value: 0 },
-                    uSpeed: { value: 0 },
-                    uElevation: { value: 0 },
-                    uFrequency: { value: 0 },
-                    uColor1: { value: new THREE.Color() },
-                    uColor2: { value: new THREE.Color() },
-                    uColor3: { value: new THREE.Color() },
-                    uColorOffset: { value: 0 },
-                    uColorMultiplier: { value: 0 }
+                    uSpeed: { value: config.speed },
+                    uElevation: { value: config.elevation },
+                    uFrequency: { value: config.frequency },
+                    uColor1: { value: new THREE.Color(config.color1) },
+                    uColor2: { value: new THREE.Color(config.color2) },
+                    uColor3: { value: new THREE.Color(config.color3) },
+                    uColorOffset: { value: config.colorOffset },
+                    uColorMultiplier: { value: config.colorMultiplier }
                 },
-                wireframe: false,
+                wireframe: config.wireframe,
                 side: THREE.DoubleSide
             });
 
@@ -456,18 +446,15 @@
             mesh.rotation.x = -Math.PI * 0.25; 
             scene.add(mesh);
 
-            updateSceneRender();
-            setupCustomUI();
+            setupUIValues();
 
-            // Usamos event listeners en window para maximizar la captura en iframes
             window.addEventListener('resize', onWindowResize, { passive: true });
-            // Blindaje del movimiento de ratón, capturando desde todo el documento
             document.addEventListener('mousemove', onMouseMove, { passive: true });
 
             animate();
         }
 
-        function setupCustomUI() {
+        function setupUIValues() {
             const toggleBtn = document.getElementById('panel-toggle');
             const toolbar = document.getElementById('horizontal-toolbar');
 
@@ -476,76 +463,80 @@
                 toggleBtn.innerHTML = '≡';
             }
 
-            // Capturar evento 'pointerdown' (más resistente en iframes que click)
-            toggleBtn.addEventListener('pointerdown', (e) => {
-                e.stopPropagation(); // Prevenir interferencia de xat
-                config.isPanelOpen = !config.isPanelOpen;
-                saveConfig();
-                
-                if (config.isPanelOpen) {
-                    toolbar.classList.remove('collapsed');
-                    toggleBtn.innerHTML = '×';
-                } else {
-                    toolbar.classList.add('collapsed');
-                    toggleBtn.innerHTML = '≡';
+            // Agregamos múltiples eventos para asegurar que alguno pase las restricciones de xat
+            ['pointerdown', 'mousedown', 'touchstart'].forEach(eventType => {
+                toggleBtn.addEventListener(eventType, (e) => {
+                    e.stopPropagation();
+                    config.isPanelOpen = !config.isPanelOpen;
+                    requestSave();
+                    
+                    if (config.isPanelOpen) {
+                        toolbar.classList.remove('collapsed');
+                        toggleBtn.innerHTML = '×';
+                    } else {
+                        toolbar.classList.add('collapsed');
+                        toggleBtn.innerHTML = '≡';
+                    }
+                }, { once: false });
+            });
+
+            // Setear valores iniciales en el DOM para que cuadren con la configuración
+            controlsList.forEach(c => {
+                const el = document.getElementById(c.id);
+                if (el) {
+                    if (c.type === 'bool') el.checked = !!config[c.key];
+                    else el.value = config[c.key];
+                }
+            });
+        }
+
+        // ==========================================
+        // SISTEMA DE POLLING AUTÓNOMO (RESISTENTE A XAT)
+        // Se ejecuta 60 veces por segundo. NO usa eventos.
+        // ==========================================
+        function pollDOMAndSync() {
+            if (!material) return;
+            let changesDetected = false;
+
+            controlsList.forEach(c => {
+                const el = document.getElementById(c.id);
+                if (!el) return;
+
+                if (c.type === 'color') {
+                    const val = el.value.trim();
+                    // Validar formato HEX
+                    if (/^#([0-9A-Fa-f]{3}){1,2}$/i.test(val) && val !== config[c.key]) {
+                        config[c.key] = val;
+                        material.uniforms[c.uniform].value.set(val);
+                        el.classList.remove('error');
+                        changesDetected = true;
+                    } else if (!/^#([0-9A-Fa-f]{3}){1,2}$/i.test(val) && val !== config[c.key]) {
+                        el.classList.add('error');
+                    }
+                } 
+                else if (c.type === 'float') {
+                    const val = parseFloat(el.value);
+                    if (!isNaN(val) && val !== config[c.key]) {
+                        config[c.key] = val;
+                        material.uniforms[c.uniform].value = val;
+                        changesDetected = true;
+                    }
+                } 
+                else if (c.type === 'bool') {
+                    const val = el.checked;
+                    if (val !== config[c.key]) {
+                        config[c.key] = val;
+                        material.wireframe = val;
+                        material.needsUpdate = true;
+                        changesDetected = true;
+                    }
                 }
             });
 
-            function bindInput(id, configKey, isColorHex = false, isCheckbox = false) {
-                const element = document.getElementById(id);
-                if (!element) return;
-
-                if (isCheckbox) {
-                    element.checked = !!config[configKey];
-                } else {
-                    element.value = config[configKey];
-                }
-
-                // BLINDAJE: Escuchar 'input' y 'change' por redundancia.
-                const handleEvent = (e) => {
-                    e.stopPropagation(); // Clave para evitar el bloqueo del iframe superior
-                    
-                    let val = isCheckbox ? e.target.checked : e.target.value;
-                    
-                    if (isColorHex) {
-                        val = val.trim();
-                        if (/^#([0-9A-Fa-f]{3}){1,2}$/i.test(val)) {
-                            element.classList.remove('error');
-                            config[configKey] = val;
-                        } else {
-                            element.classList.add('error');
-                            return; 
-                        }
-                    } else if (!isCheckbox) {
-                        val = parseFloat(val);
-                        if (isNaN(val)) return; 
-                        config[configKey] = val;
-                    } else {
-                        config[configKey] = val;
-                    }
-
-                    saveConfig();
-                    updateSceneRender();
-                };
-
-                element.addEventListener('input', handleEvent);
-                element.addEventListener('change', handleEvent);
-                // Previene que interactuar con el slider dispare eventos de la página de fondo
-                element.addEventListener('pointerdown', (e) => e.stopPropagation());
+            // Si se detectó que el DOM cambió, solicitar guardado en LocalStorage
+            if (changesDetected) {
+                requestSave();
             }
-
-            bindInput('ctrl-color1', 'color1', true, false);
-            bindInput('ctrl-color2', 'color2', true, false);
-            bindInput('ctrl-color3', 'color3', true, false);
-            
-            bindInput('ctrl-offset', 'colorOffset', false, false);
-            bindInput('ctrl-contrast', 'colorMultiplier', false, false);
-            
-            bindInput('ctrl-speed', 'speed', false, false);
-            bindInput('ctrl-elevation', 'elevation', false, false);
-            bindInput('ctrl-frequency', 'frequency', false, false);
-            
-            bindInput('ctrl-wireframe', 'wireframe', false, true);
         }
 
         function onMouseMove(event) {
@@ -558,24 +549,29 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-            updateSceneRender(); // Forzar render al redimensionar
         }
 
+        // LOOP CONSTANTE - Aquí ocurre la magia antibloqueos
         function animate() {
             requestAnimationFrame(animate);
 
             if (!material || !renderer) return;
 
+            // 1. Escanear el DOM en tiempo real a la fuerza
+            pollDOMAndSync();
+
+            // 2. Actualizar el tiempo del shader
             const elapsedTime = clock.getElapsedTime();
             material.uniforms.uTime.value = elapsedTime;
 
+            // 3. Movimiento de la cámara (parallax suave)
             mouseX += (targetX - mouseX) * 0.05;
             mouseY += (targetY - mouseY) * 0.05;
-            
             camera.position.x = mouseX * 1.5;
             camera.position.y = (mouseY * 0.5) - 1.0; 
             camera.lookAt(0, 0, 0);
 
+            // 4. Renderizar (Siempre activo)
             renderer.render(scene, camera);
         }
 
