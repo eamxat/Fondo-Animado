@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+<!-- CODIGO CREADO POR EAM96 - EXCLUSIVAMENTE PARA USO PERSONAL. -->
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fondo Orgánico - Three.js</title>
+    <title>Fondo Animado - EAM96</title>
     <style>
         body {
             margin: 0;
@@ -393,9 +394,25 @@
     </script>
 
     <!-- ============================================== -->
-    <!-- MAIN JAVASCRIPT: POLLING ACTIVO (INTACTO)      -->
+    <!-- MAIN JAVASCRIPT Y PROTECCIÓN BÁSICA            -->
     <!-- ============================================== -->
     <script>
+        // FIRMA DE AUTORÍA
+        console.log("%cCODIGO CREADO POR EAM96 - EXCLUSIVAMENTE PARA USO PERSONAL.", "color: #ff8822; font-size: 14px; font-weight: bold; background-color: #15062a; padding: 10px; border-radius: 5px;");
+
+        // PROTECCIÓN DISUASORIA LIGERA
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (
+                e.key === 'F12' || e.keyCode === 123 || // F12
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) || // Ctrl+Shift+I / Ctrl+Shift+J
+                (e.ctrlKey && (e.key === 'U' || e.key === 'u')) // Ctrl+U
+            ) {
+                e.preventDefault();
+            }
+        });
+
+        // INICIO DEL MOTOR
         let scene, camera, renderer, material, mesh;
         let clock = new THREE.Clock();
 
@@ -422,7 +439,6 @@
         let config = { ...defaultConfig };
         let saveTimeout = null;
 
-        // Añadida la referencia del indicador (ind) a los objetos de color
         const controlsList = [
             { id: 'ctrl-color1', ind: 'ind-color1', key: 'color1', type: 'color', uniform: 'uColor1' },
             { id: 'ctrl-color2', ind: 'ind-color2', key: 'color2', type: 'color', uniform: 'uColor2' },
@@ -531,18 +547,15 @@
                 updateVisibility();
             };
 
-            // EVENTO CLIC SIMPLE Y LIMPIO (Se elimina la redundancia para arreglar el "hold")
             toggleBtn.addEventListener('click', (e) => togglePanel(e), { capture: true });
             closeBtn.addEventListener('click', (e) => togglePanel(e, false), { capture: true });
 
-            // Inicializar valores e indicadores visuales
             controlsList.forEach(c => {
                 const el = document.getElementById(c.id);
                 if (el) {
                     if (c.type === 'bool') el.checked = !!config[c.key];
                     else el.value = config[c.key];
 
-                    // Pintar el indicador de color inicial
                     if (c.type === 'color' && c.ind) {
                         const indEl = document.getElementById(c.ind);
                         if (indEl) indEl.style.backgroundColor = config[c.key];
@@ -570,7 +583,6 @@
                             changesDetected = true;
                         }
                         
-                        // Actualización en tiempo real del indicador de color
                         if (c.ind) {
                             const indEl = document.getElementById(c.ind);
                             if (indEl) indEl.style.backgroundColor = val;
