@@ -224,7 +224,7 @@
     <!-- WebGL Canvas Container -->
     <div id="canvas-container"></div>
 
-    <!-- Load Three.js (Eliminamos dat.gui porque usamos UI nativa) -->
+    <!-- Load Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <!-- ============================================== -->
@@ -306,30 +306,23 @@
         void main() {
             vUv = uv;
             
-            // 1. Get the vertex's original position in the local model space
             vec4 modelPosition = modelMatrix * vec4(position, 1.0);
 
-            // 2. Generate elevation using the simplex 3D noise function
             float elevation = snoise(vec3(
                 modelPosition.x * uFrequency, 
                 modelPosition.y * uFrequency, 
                 uTime * uSpeed
             )) * uElevation;
 
-            // 3. Add a smaller secondary detail layer of noise (fractal-like)
             elevation += snoise(vec3(
                 modelPosition.x * uFrequency * 2.5, 
                 modelPosition.y * uFrequency * 2.5, 
                 uTime * uSpeed * 1.5
             )) * (uElevation * 0.2);
 
-            // 4. Apply elevation to the Z axis
             modelPosition.z += elevation;
-            
-            // Pass the resulting elevation to the fragment shader for coloring
             vElevation = elevation;
 
-            // 5. Final projection matrix steps
             vec4 viewPosition = viewMatrix * modelPosition;
             vec4 projectedPosition = projectionMatrix * viewPosition;
 
@@ -351,10 +344,8 @@
         varying float vElevation;
 
         void main() {
-            // Remap elevation into a 0.0 - 1.0 range based on uniforms
             float mixStrength = (vElevation + uColorOffset) * uColorMultiplier;
 
-            // Clamp and smoothly interpolate between the 3 colors
             vec3 color = mix(uColor1, uColor2, smoothstep(0.0, 0.5, mixStrength));
             color = mix(color, uColor3, smoothstep(0.5, 1.0, mixStrength));
 
@@ -369,16 +360,14 @@
         let scene, camera, renderer, material, mesh;
         let clock = new THREE.Clock();
 
-        // Parallax mouse variables
         let mouseX = 0;
         let mouseY = 0;
         let targetX = 0;
         let targetY = 0;
 
-        // Clave para guardar en LocalStorage
         const STORAGE_KEY = 'organic_bg_config_v1';
 
-        // Valores por defecto
+        // Valores iniciales por defecto
         const defaultConfig = {
             color1: '#15062a',
             color2: '#91165b',
@@ -389,10 +378,10 @@
             colorOffset: 0.6,
             colorMultiplier: 1.1,
             wireframe: false,
-            isPanelOpen: true // Persistencia del estado colapsado/expandido
+            isPanelOpen: true 
         };
 
-        // Estado actual (se mezcla con localStorage si existe)
+        // El estado en memoria fusionado con localstorage
         let config = { ...defaultConfig };
 
         function loadConfig() {
@@ -410,70 +399,88 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
         }
 
+        // ==========================================
+        // FUNCIÓN CENTRAL DE ACTUALIZACIÓN DE RENDER
+        // ==========================================
+        function updateSceneRender() {
+            if (!material) return;
+
+            // Actualizar colores convirtiendo los strings HEX de forma segura
+            material.uniforms.uColor1.value.set(config.color1);
+            material.uniforms.uColor2.value.set(config.color2);
+            material.uniforms.uColor3.value.set(config.color3);
+
+            // Actualizar variables de transformación
+            material.uniforms.uColorOffset.value = parseFloat(config.colorOffset);
+            material.uniforms.uColorMultiplier.value = parseFloat(config.colorMultiplier);
+            material.uniforms.uSpeed.value = parseFloat(config.speed);
+            material.uniforms.uElevation.value = parseFloat(config.elevation);
+            material.uniforms.uFrequency.value = parseFloat(config.frequency);
+
+            // Actualizar el modo wireframe (requiere needsUpdate)
+            if (material.wireframe !== config.wireframe) {
+                material.wireframe = config.wireframe;
+                material.needsUpdate = true;
+            }
+        }
+
         function init() {
-            // Cargar datos previos antes de inicializar la escena
             loadConfig();
 
             const container = document.getElementById('canvas-container');
 
-            // 1. Core Scene Setup
             scene = new THREE.Scene();
 
-            // 2. Camera Setup (Perspective for depth)
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(0, -1, 5); // Start slightly angled
+            camera.position.set(0, -1, 5); 
             camera.lookAt(0, 0, 0);
 
-            // 3. Renderer Setup
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
             container.appendChild(renderer.domElement);
 
-            // 4. Custom Shader Material
+            // Iniciar material con valores por defecto
             material = new THREE.ShaderMaterial({
                 vertexShader: document.getElementById('vertexShader').textContent,
                 fragmentShader: document.getElementById('fragmentShader').textContent,
                 uniforms: {
                     uTime: { value: 0 },
-                    uSpeed: { value: config.speed },
-                    uElevation: { value: config.elevation },
-                    uFrequency: { value: config.frequency },
-                    uColor1: { value: new THREE.Color(config.color1) },
-                    uColor2: { value: new THREE.Color(config.color2) },
-                    uColor3: { value: new THREE.Color(config.color3) },
-                    uColorOffset: { value: config.colorOffset },
-                    uColorMultiplier: { value: config.colorMultiplier }
+                    uSpeed: { value: 0 },
+                    uElevation: { value: 0 },
+                    uFrequency: { value: 0 },
+                    uColor1: { value: new THREE.Color() },
+                    uColor2: { value: new THREE.Color() },
+                    uColor3: { value: new THREE.Color() },
+                    uColorOffset: { value: 0 },
+                    uColorMultiplier: { value: 0 }
                 },
-                wireframe: config.wireframe,
+                wireframe: false,
                 side: THREE.DoubleSide
             });
 
-            // 5. High-Resolution Plane Geometry (needed for smooth vertex waves)
             const geometry = new THREE.PlaneGeometry(25, 25, 256, 256);
             mesh = new THREE.Mesh(geometry, material);
             
-            // Tilt the plane backwards to create depth/perspective
             mesh.rotation.x = -Math.PI * 0.25; 
             scene.add(mesh);
 
-            // 6. Setup Interactive Control Panel nativo
+            // Sincronizar el material con los datos de configuración cargados
+            updateSceneRender();
+            
             setupCustomUI();
 
-            // 7. Event Listeners
             window.addEventListener('resize', onWindowResize, false);
             document.addEventListener('mousemove', onMouseMove, false);
 
-            // 8. Start loop
             animate();
         }
 
         function setupCustomUI() {
-            // Lógica de Colapso/Expansión del Panel
             const toggleBtn = document.getElementById('panel-toggle');
             const toolbar = document.getElementById('horizontal-toolbar');
 
-            // Restaurar estado visual inicial basado en la configuración guardada
+            // Restaurar estado del panel
             if (!config.isPanelOpen) {
                 toolbar.classList.add('collapsed');
                 toggleBtn.innerHTML = '≡';
@@ -492,67 +499,58 @@
                 }
             });
 
-            // Función auxiliar para enlazar inputs HTML con Three.js y el Config
-            function bindInput(id, configKey, isColorHex = false, isCheckbox = false, uniformName = '') {
+            // Lógica unificada para inputs
+            function bindInput(id, configKey, isColorHex = false, isCheckbox = false) {
                 const element = document.getElementById(id);
                 if (!element) return;
 
-                // Establecer valor inicial del DOM desde el config cargado
+                // Set initial DOM value
                 if (isCheckbox) {
-                    element.checked = config[configKey];
+                    element.checked = !!config[configKey];
                 } else {
                     element.value = config[configKey];
                 }
 
-                // Escuchar cambios ('input' reacciona en tiempo real al arrastrar/escribir)
+                // Escuchar 'input' garantiza la respuesta inmediata
                 element.addEventListener('input', (e) => {
                     let val = isCheckbox ? e.target.checked : e.target.value;
                     
-                    // Si es entrada de color Hexadecimal, validar antes de aplicar
                     if (isColorHex) {
                         val = val.trim();
-                        // Validar formato HEX (#123456)
-                        if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                        // Regex valida formato Hex (#123 o #123456)
+                        if (/^#([0-9A-Fa-f]{3}){1,2}$/i.test(val)) {
                             element.classList.remove('error');
                             config[configKey] = val;
-                            saveConfig();
-                            if (material) material.uniforms[uniformName].value.set(val);
                         } else {
-                            // Mostrar error visual si el HEX es inválido (no guardar ni aplicar)
+                            // Detener si es inválido y marcar error visualmente
                             element.classList.add('error');
+                            return; 
                         }
-                        return; // Terminar aquí para inputs de color
+                    } else if (!isCheckbox) {
+                        val = parseFloat(val);
+                        if (isNaN(val)) return; // Proteger shader contra NaN
+                        config[configKey] = val;
+                    } else {
+                        config[configKey] = val;
                     }
 
-                    // Asegurar que los rangos sean números flotantes
-                    if (!isCheckbox) val = parseFloat(val);
-
-                    // Actualizar estado y guardar localmente en silencio
-                    config[configKey] = val;
+                    // Guardar y Actualizar Escena de forma centralizada
                     saveConfig();
-
-                    // Actualizar el shader de Three.js inmediatamente
-                    if (material) {
-                        if (isCheckbox) {
-                            material.wireframe = val;
-                        } else {
-                            material.uniforms[uniformName].value = val;
-                        }
-                    }
+                    updateSceneRender();
                 });
             }
 
-            // Enlazar cada elemento de la UI con su respectiva variable y uniform
-            bindInput('ctrl-color1', 'color1', true, false, 'uColor1');
-            bindInput('ctrl-color2', 'color2', true, false, 'uColor2');
-            bindInput('ctrl-color3', 'color3', true, false, 'uColor3');
+            // Enlazar controles
+            bindInput('ctrl-color1', 'color1', true, false);
+            bindInput('ctrl-color2', 'color2', true, false);
+            bindInput('ctrl-color3', 'color3', true, false);
             
-            bindInput('ctrl-offset', 'colorOffset', false, false, 'uColorOffset');
-            bindInput('ctrl-contrast', 'colorMultiplier', false, false, 'uColorMultiplier');
+            bindInput('ctrl-offset', 'colorOffset', false, false);
+            bindInput('ctrl-contrast', 'colorMultiplier', false, false);
             
-            bindInput('ctrl-speed', 'speed', false, false, 'uSpeed');
-            bindInput('ctrl-elevation', 'elevation', false, false, 'uElevation');
-            bindInput('ctrl-frequency', 'frequency', false, false, 'uFrequency');
+            bindInput('ctrl-speed', 'speed', false, false);
+            bindInput('ctrl-elevation', 'elevation', false, false);
+            bindInput('ctrl-frequency', 'frequency', false, false);
             
             bindInput('ctrl-wireframe', 'wireframe', false, true);
         }
@@ -571,9 +569,11 @@
         function animate() {
             requestAnimationFrame(animate);
 
+            // Continuar sumando tiempo al shader independientemente de la UI
             const elapsedTime = clock.getElapsedTime();
-            material.uniforms.uTime.value = elapsedTime;
+            if(material) material.uniforms.uTime.value = elapsedTime;
 
+            // Interpolación suave de cámara
             mouseX += (targetX - mouseX) * 0.05;
             mouseY += (targetY - mouseY) * 0.05;
             
