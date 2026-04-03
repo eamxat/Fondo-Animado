@@ -16,32 +16,35 @@
         #canvas-container {
             width: 100vw;
             height: 100vh;
-            position: absolute;
+            position: fixed; /* Fixed previene problemas de scroll en iframes */
             top: 0;
             left: 0;
             z-index: 1;
+            pointer-events: none; /* Que el canvas no robe clicks de los overlays externos */
         }
 
         /* ========================================================
-           SISTEMA DE CONTROLES HORIZONTALES COLAPSABLES
+           SISTEMA DE CONTROLES HORIZONTALES (IZQUIERDA A DERECHA)
+           BLINDADO PARA ENTORNOS RESTRINGIDOS COMO XAT
            ======================================================== */
         #ui-wrapper {
-            position: absolute;
-            top: 65px; /* Altura especificada */
-            right: 20px;
+            position: fixed; /* Fijo a la ventana del iframe/navegador */
+            top: 65px; 
+            left: 20px; /* Movido a la IZQUIERDA */
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: flex-start; /* Expansión hacia la DERECHA */
             gap: 10px;
-            z-index: 9999; /* Prioridad visual máxima */
-            pointer-events: none; /* Permite clicks a través del wrapper vacío */
+            z-index: 2147483647; /* Z-Index máximo absoluto (32-bit) */
+            pointer-events: none; 
+            isolation: isolate; /* Crea un nuevo contexto de apilamiento */
         }
 
         #panel-toggle {
             pointer-events: auto;
-            background: rgba(15, 15, 15, 0.85);
+            background: rgba(15, 15, 15, 0.95); /* Un poco más opaco para destacar */
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             color: #fff;
             width: 44px;
             height: 44px;
@@ -51,44 +54,40 @@
             justify-content: center;
             align-items: center;
             font-size: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
             transition: background 0.2s, transform 0.2s;
             user-select: none;
             flex-shrink: 0;
         }
 
         #panel-toggle:hover {
-            background: rgba(35, 35, 35, 0.9);
+            background: rgba(45, 45, 45, 1);
         }
 
         #horizontal-toolbar {
             pointer-events: auto;
-            max-width: calc(100vw - 90px); /* Ajuste para el botón y márgenes */
+            max-width: calc(100vw - 90px); 
             display: flex;
             align-items: center;
             gap: 15px;
             padding: 10px 15px;
-            background: rgba(15, 15, 15, 0.85);
+            background: rgba(15, 15, 15, 0.95);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 8px;
             
-            /* Transiciones para colapsar/expandir horizontalmente */
             transition: max-width 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, padding 0.4s ease;
             opacity: 1;
             
-            /* Restricciones críticas para evitar crecimiento vertical */
             overflow-x: auto;
             overflow-y: hidden;
             white-space: nowrap;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
             
-            /* Estilo del scrollbar horizontal */
             scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.3) transparent;
+            scrollbar-color: rgba(255,255,255,0.4) transparent;
         }
 
-        /* Estado colapsado: Oculta el panel reduciendo el ancho horizontal */
         #horizontal-toolbar.collapsed {
             max-width: 0;
             padding-left: 0;
@@ -104,11 +103,10 @@
             height: 6px;
         }
         #horizontal-toolbar::-webkit-scrollbar-thumb {
-            background-color: rgba(255,255,255,0.3);
+            background-color: rgba(255,255,255,0.4);
             border-radius: 4px;
         }
 
-        /* Estilos de los controles individuales */
         .control-group {
             display: flex;
             align-items: center;
@@ -118,18 +116,16 @@
             user-select: none;
         }
 
-        /* Inputs de rango */
         input[type="range"] {
             width: 80px;
             accent-color: #fff;
             cursor: pointer;
         }
 
-        /* Inputs de color (Texto HEX para evitar dropdowns nativos) */
         input[type="text"].hex-input {
             width: 60px;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             color: #fff;
             font-family: 'Courier New', Courier, monospace;
             font-size: 11px;
@@ -149,7 +145,6 @@
             color: #ff4444;
         }
 
-        /* Checkbox */
         input[type="checkbox"] {
             cursor: pointer;
             accent-color: #fff;
@@ -160,15 +155,18 @@
         .separator {
             width: 1px;
             height: 20px;
-            background: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.25);
             margin: 0 5px;
         }
     </style>
 </head>
 <body>
-    <!-- Contenedor general para alineación y colapso -->
+    <!-- Contenedor general: Ahora el botón va primero para expandir a la derecha -->
     <div id="ui-wrapper">
-        <!-- Barra Horizontal de Controles -->
+        <!-- Botón Toggle siempre visible (Lado Izquierdo) -->
+        <div id="panel-toggle" title="Ocultar/Mostrar Controles">×</div>
+
+        <!-- Barra Horizontal de Controles (Se expande hacia la Derecha) -->
         <div id="horizontal-toolbar">
             <div class="control-group">
                 <label for="ctrl-color1">Base</label>
@@ -216,9 +214,6 @@
                 <input type="checkbox" id="ctrl-wireframe">
             </div>
         </div>
-
-        <!-- Botón Toggle siempre visible -->
-        <div id="panel-toggle" title="Ocultar/Mostrar Controles">×</div>
     </div>
 
     <!-- WebGL Canvas Container -->
@@ -228,7 +223,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <!-- ============================================== -->
-    <!-- VERTEX SHADER: Handles the 3D waving distortion  -->
+    <!-- VERTEX SHADER -->
     <!-- ============================================== -->
     <script type="x-shader/x-vertex" id="vertexShader">
         uniform float uTime;
@@ -239,7 +234,6 @@
         varying vec2 vUv;
         varying float vElevation;
 
-        // Simplex 3D Noise function by Ian McEwan, Ashima Arts
         vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
         vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
 
@@ -305,7 +299,6 @@
 
         void main() {
             vUv = uv;
-            
             vec4 modelPosition = modelMatrix * vec4(position, 1.0);
 
             float elevation = snoise(vec3(
@@ -331,7 +324,7 @@
     </script>
 
     <!-- ============================================== -->
-    <!-- FRAGMENT SHADER: Handles the fluid color mixing  -->
+    <!-- FRAGMENT SHADER -->
     <!-- ============================================== -->
     <script type="x-shader/x-fragment" id="fragmentShader">
         uniform vec3 uColor1;
@@ -354,7 +347,7 @@
     </script>
 
     <!-- ============================================== -->
-    <!-- MAIN JAVASCRIPT: Three.js Setup & Animation    -->
+    <!-- MAIN JAVASCRIPT -->
     <!-- ============================================== -->
     <script>
         let scene, camera, renderer, material, mesh;
@@ -365,9 +358,8 @@
         let targetX = 0;
         let targetY = 0;
 
-        const STORAGE_KEY = 'organic_bg_config_v1';
+        const STORAGE_KEY = 'organic_bg_config_v2_xat';
 
-        // Valores iniciales por defecto
         const defaultConfig = {
             color1: '#15062a',
             color2: '#91165b',
@@ -381,7 +373,6 @@
             isPanelOpen: true 
         };
 
-        // El estado en memoria fusionado con localstorage
         let config = { ...defaultConfig };
 
         function loadConfig() {
@@ -400,28 +391,29 @@
         }
 
         // ==========================================
-        // FUNCIÓN CENTRAL DE ACTUALIZACIÓN DE RENDER
+        // RENDERIZADO FORZADO PARA IFRAMES/XAT
         // ==========================================
         function updateSceneRender() {
-            if (!material) return;
+            if (!material || !renderer || !scene || !camera) return;
 
-            // Actualizar colores convirtiendo los strings HEX de forma segura
             material.uniforms.uColor1.value.set(config.color1);
             material.uniforms.uColor2.value.set(config.color2);
             material.uniforms.uColor3.value.set(config.color3);
 
-            // Actualizar variables de transformación
             material.uniforms.uColorOffset.value = parseFloat(config.colorOffset);
             material.uniforms.uColorMultiplier.value = parseFloat(config.colorMultiplier);
             material.uniforms.uSpeed.value = parseFloat(config.speed);
             material.uniforms.uElevation.value = parseFloat(config.elevation);
             material.uniforms.uFrequency.value = parseFloat(config.frequency);
 
-            // Actualizar el modo wireframe (requiere needsUpdate)
             if (material.wireframe !== config.wireframe) {
                 material.wireframe = config.wireframe;
                 material.needsUpdate = true;
             }
+
+            // BLINDAJE: Forzar un render inmediato. Si el entorno xat bloquea
+            // el requestAnimationFrame, esta línea garantiza visualización inmediata.
+            renderer.render(scene, camera);
         }
 
         function init() {
@@ -440,7 +432,6 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
             container.appendChild(renderer.domElement);
 
-            // Iniciar material con valores por defecto
             material = new THREE.ShaderMaterial({
                 vertexShader: document.getElementById('vertexShader').textContent,
                 fragmentShader: document.getElementById('fragmentShader').textContent,
@@ -465,13 +456,13 @@
             mesh.rotation.x = -Math.PI * 0.25; 
             scene.add(mesh);
 
-            // Sincronizar el material con los datos de configuración cargados
             updateSceneRender();
-            
             setupCustomUI();
 
-            window.addEventListener('resize', onWindowResize, false);
-            document.addEventListener('mousemove', onMouseMove, false);
+            // Usamos event listeners en window para maximizar la captura en iframes
+            window.addEventListener('resize', onWindowResize, { passive: true });
+            // Blindaje del movimiento de ratón, capturando desde todo el documento
+            document.addEventListener('mousemove', onMouseMove, { passive: true });
 
             animate();
         }
@@ -480,13 +471,14 @@
             const toggleBtn = document.getElementById('panel-toggle');
             const toolbar = document.getElementById('horizontal-toolbar');
 
-            // Restaurar estado del panel
             if (!config.isPanelOpen) {
                 toolbar.classList.add('collapsed');
                 toggleBtn.innerHTML = '≡';
             }
 
-            toggleBtn.addEventListener('click', () => {
+            // Capturar evento 'pointerdown' (más resistente en iframes que click)
+            toggleBtn.addEventListener('pointerdown', (e) => {
+                e.stopPropagation(); // Prevenir interferencia de xat
                 config.isPanelOpen = !config.isPanelOpen;
                 saveConfig();
                 
@@ -499,48 +491,49 @@
                 }
             });
 
-            // Lógica unificada para inputs
             function bindInput(id, configKey, isColorHex = false, isCheckbox = false) {
                 const element = document.getElementById(id);
                 if (!element) return;
 
-                // Set initial DOM value
                 if (isCheckbox) {
                     element.checked = !!config[configKey];
                 } else {
                     element.value = config[configKey];
                 }
 
-                // Escuchar 'input' garantiza la respuesta inmediata
-                element.addEventListener('input', (e) => {
+                // BLINDAJE: Escuchar 'input' y 'change' por redundancia.
+                const handleEvent = (e) => {
+                    e.stopPropagation(); // Clave para evitar el bloqueo del iframe superior
+                    
                     let val = isCheckbox ? e.target.checked : e.target.value;
                     
                     if (isColorHex) {
                         val = val.trim();
-                        // Regex valida formato Hex (#123 o #123456)
                         if (/^#([0-9A-Fa-f]{3}){1,2}$/i.test(val)) {
                             element.classList.remove('error');
                             config[configKey] = val;
                         } else {
-                            // Detener si es inválido y marcar error visualmente
                             element.classList.add('error');
                             return; 
                         }
                     } else if (!isCheckbox) {
                         val = parseFloat(val);
-                        if (isNaN(val)) return; // Proteger shader contra NaN
+                        if (isNaN(val)) return; 
                         config[configKey] = val;
                     } else {
                         config[configKey] = val;
                     }
 
-                    // Guardar y Actualizar Escena de forma centralizada
                     saveConfig();
                     updateSceneRender();
-                });
+                };
+
+                element.addEventListener('input', handleEvent);
+                element.addEventListener('change', handleEvent);
+                // Previene que interactuar con el slider dispare eventos de la página de fondo
+                element.addEventListener('pointerdown', (e) => e.stopPropagation());
             }
 
-            // Enlazar controles
             bindInput('ctrl-color1', 'color1', true, false);
             bindInput('ctrl-color2', 'color2', true, false);
             bindInput('ctrl-color3', 'color3', true, false);
@@ -561,19 +554,21 @@
         }
 
         function onWindowResize() {
+            if(!camera || !renderer) return;
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            updateSceneRender(); // Forzar render al redimensionar
         }
 
         function animate() {
             requestAnimationFrame(animate);
 
-            // Continuar sumando tiempo al shader independientemente de la UI
-            const elapsedTime = clock.getElapsedTime();
-            if(material) material.uniforms.uTime.value = elapsedTime;
+            if (!material || !renderer) return;
 
-            // Interpolación suave de cámara
+            const elapsedTime = clock.getElapsedTime();
+            material.uniforms.uTime.value = elapsedTime;
+
             mouseX += (targetX - mouseX) * 0.05;
             mouseY += (targetY - mouseY) * 0.05;
             
